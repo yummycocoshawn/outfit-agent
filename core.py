@@ -11,12 +11,17 @@ STYLES = {"休閒", "正式", "運動", "街頭", "文青", "其他"}
 def clean_text(value, limit=60):
     """去掉控制字元與 Excel 公式開頭字元,並限制長度。"""
     s = re.sub(r"[\x00-\x1f\x7f]", " ", str(value)).strip()
+    # === DEFENSE 4 BEGIN: 以 = + - @ 開頭的文字不可被 Excel 當公式執行 ===
     s = s.lstrip("=+-@")
+    # === DEFENSE 4 END ===
     return s[:limit]
 
 
 def safe_filename(name):
-    s = re.sub(r'[\\/:*?"<>|\s]+', "_", clean_text(name, 20))
+    # === DEFENSE 3 BEGIN: 模型回傳的名稱變檔名前,移除路徑相關字元 ===
+    s = clean_text(name, 20).replace("..", "")
+    s = re.sub(r'[\\/:*?"<>|\s]+', "_", s)
+    # === DEFENSE 3 END ===
     return s or "outfit"
 
 
