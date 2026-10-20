@@ -1,4 +1,5 @@
 """Excel 讀寫與照片存放。所有使用者共用同一份 xlsx,以『使用者ID』欄區分(暱稱可改、可重名,ID 不會)。"""
+import shutil
 import time
 from datetime import datetime
 from pathlib import Path
@@ -33,11 +34,19 @@ class Store:
                 wb = load_workbook(self.xlsx)
                 wb.active.append(row)
                 wb.save(self.xlsx)
+                self._refresh_view()
                 return
             except PermissionError:
                 print(f"⚠️ 無法寫入 {self.xlsx}(可能在 Excel 中開啟),第 {attempt + 1} 次重試…")
                 time.sleep(2)
         raise PermissionError(f"{self.xlsx} 一直無法寫入")
+
+    def _refresh_view(self):
+        """複製一份給人類開啟的檢視檔;使用者開著它時略過,不影響主檔寫入。"""
+        try:
+            shutil.copyfile(self.xlsx, self.dir / "outfits_view.xlsx")
+        except OSError:
+            pass
 
     def records(self, user_id):
         ws = load_workbook(self.xlsx).active
@@ -58,5 +67,6 @@ class Store:
                 name = ws.cell(idx, COL_NAME).value
                 ws.delete_rows(idx)
                 wb.save(self.xlsx)
+                self._refresh_view()
                 return name
         return None
