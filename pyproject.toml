@@ -1,0 +1,12 @@
+[project]
+name = "outfit-agent"
+version = "0.1.0"
+description = "Discord 每日穿搭紀錄 agent"
+requires-python = ">=3.12"
+dependencies = ["discord.py>=2.4", "openpyxl>=3.1", "python-dotenv>=1.0"]
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
