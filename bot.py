@@ -47,9 +47,9 @@ async def on_message(msg: discord.Message):
     if text == "!說明":
         await msg.reply(HELP)
     elif text == "!週報":
-        await msg.reply(await asyncio.to_thread(report, user))
+        await msg.reply(await asyncio.to_thread(report, msg.author.id, user))
     elif text == "!刪除":
-        name = await asyncio.to_thread(store.delete_last, user)
+        name = await asyncio.to_thread(store.delete_last, msg.author.id)
         await msg.reply(f"🗑️ 已刪除你的最後一筆:{name}" if name else "你還沒有任何紀錄。")
     for att in msg.attachments:
         ext = Path(att.filename).suffix.lower()
@@ -59,9 +59,9 @@ async def on_message(msg: discord.Message):
             await queue.put((msg, att, ext))
 
 
-def report(user):
+def report(uid, user):
     now = datetime.now()
-    recs = [r for r in store.records(user) if (now - r["time"]).days < 7]
+    recs = [r for r in store.records(uid) if (now - r["time"]).days < 7]
     if not recs:
         return "近 7 天沒有穿搭紀錄,快上傳一張吧!"
     s = summarize(recs)
@@ -100,8 +100,8 @@ async def handle(msg, att, ext):
         n += 1
     tmp_photo.rename(final)
     rec = {**result, "time": now}
-    history = await asyncio.to_thread(store.records, user)
-    await asyncio.to_thread(store.add, user, rec, final)
+    history = await asyncio.to_thread(store.records, msg.author.id)
+    await asyncio.to_thread(store.add, msg.author.id, user, rec, final)
     if not result["is_outfit"]:
         await msg.reply(f"🤔 這看起來不是穿搭:{result['note']}(已存檔)")
         return

@@ -15,19 +15,19 @@ temp_min/temp_max 為這套穿搭適合的氣溫範圍(攝氏)。照片不是穿
 
 
 def analyze(photo: Path, model: str, timeout=120):
-    # === DEFENSE 1 BEGIN: 只在獨立暫存資料夾放這一張照片,且只允許 Read 工具 ===
+    # ==== 防護 1 開始: 只在獨立暫存資料夾放這一張照片,且只允許 Read(./**) ====
     with tempfile.TemporaryDirectory(prefix="outfit_") as tmp:
         tmp = Path(tmp)
         shutil.copy(photo, tmp / f"photo{photo.suffix}")
-        # === DEFENSE 2 BEGIN: 傳給模型的只有固定指令;使用者文字完全不進 prompt ===
+        # ==== 防護 2 開始: 傳給模型的只有固定指令;使用者文字完全不進 prompt ====
         prompt = PROMPT.format(ext=photo.suffix)
-        # === DEFENSE 2 END ===
+        # ==== 防護 2 結束 ====
         proc = subprocess.run(
             ["claude", "-p", "--model", model, "--allowedTools", "Read(./**)",
              "--permission-mode", "dontAsk"],
             input=prompt, cwd=tmp, capture_output=True,
             text=True, encoding="utf-8", timeout=timeout)
-    # === DEFENSE 1 END ===
+    # ==== 防護 1 結束 ====
     if proc.returncode != 0:
         raise RuntimeError(f"claude 執行失敗: {proc.stderr[:200]}")
     return parse_model_output(proc.stdout)

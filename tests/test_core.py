@@ -39,3 +39,15 @@ def test_repeat_and_summary():
     assert find_repeat(["白T", "牛仔褲", "球鞋"], hist, now=now)[1]["name"] == "A"
     assert find_repeat(["西裝"], hist, now=now) is None
     assert summarize(hist)["top_items"][0][1] == 2
+
+
+def test_storage_per_user_id(tmp_path):
+    from storage import Store
+    s = Store(tmp_path)
+    rec = {"time": datetime(2026, 10, 20, 9, 0, 0), "name": "A", "items": ["白T", "牛仔褲"],
+           "colors": ["白"], "style": "休閒", "temp_min": 20, "temp_max": 28}
+    s.add(1, "同名", rec, "p1.jpg")
+    s.add(2, "同名", rec, "p2.jpg")  # 暱稱相同但 ID 不同
+    assert len(s.records(1)) == 1 and len(s.records(2)) == 1
+    assert s.delete_last(1) == "A" and s.records(1) == [] and len(s.records(2)) == 1
+    assert s.delete_last(1) is None
