@@ -23,7 +23,7 @@ def analyze(photo: Path, model: str, timeout=120):
         prompt = PROMPT.format(ext=photo.suffix)
         # === DEFENSE 2 END ===
         proc = subprocess.run(
-            ["claude", "-p", "--model", model, "--allowedTools", "Read",
+            ["claude", "-p", "--model", model, "--allowedTools", "Read(./**)",
              "--permission-mode", "dontAsk"],
             input=prompt, cwd=tmp, capture_output=True,
             text=True, encoding="utf-8", timeout=timeout)
