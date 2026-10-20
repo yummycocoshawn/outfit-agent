@@ -18,6 +18,14 @@
 - 輸出驗證:`core.parse_model_output` 嚴格檢查 JSON 結構、型別、溫度範圍,並清掉 Excel 公式開頭字元與控制字元。
 - Token 只放 `.env`(已 gitignore)。
 
+### 防護區段位置(各以 `DEFENSE n BEGIN/END` 註解包住,目前全部啟用)
+| 防護 | 檔案 | 起始行 |
+|---|---|---|
+| 1 隔離範圍 | `claude_client.py` | 18 |
+| 2 使用者文字只當資料 | `claude_client.py` | 22 |
+| 3 檔名清洗 | `core.py` | 21 |
+| 4 Excel 公式防護 | `core.py` | 14 |
+
 ## 執行
 
 ```

@@ -1,4 +1,5 @@
 """Excel 讀寫與照片存放。所有使用者共用同一份 xlsx,以『上傳者』欄區分。"""
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -21,13 +22,21 @@ class Store:
             wb.save(self.xlsx)
 
     def add(self, user, rec, photo_path):
-        wb = load_workbook(self.xlsx)
-        wb.active.append([
+        row = [
             rec["time"].strftime("%Y-%m-%d %H:%M:%S"), clean_text(user, 40), rec["name"],
             SEP.join(rec["items"]), SEP.join(rec["colors"]), rec["style"],
             "" if rec["temp_min"] is None else f'{rec["temp_min"]}~{rec["temp_max"]}',
-            str(photo_path)])
-        wb.save(self.xlsx)
+            str(photo_path)]
+        for attempt in range(5):  # Excel 開著時存檔會被鎖住,等一下再試
+            try:
+                wb = load_workbook(self.xlsx)
+                wb.active.append(row)
+                wb.save(self.xlsx)
+                return
+            except PermissionError:
+                print(f"⚠️ 無法寫入 {self.xlsx}(可能在 Excel 中開啟),第 {attempt + 1} 次重試…")
+                time.sleep(2)
+        raise PermissionError(f"{self.xlsx} 一直無法寫入")
 
     def records(self, user):
         ws = load_workbook(self.xlsx).active

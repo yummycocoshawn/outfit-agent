@@ -75,9 +75,9 @@ async def worker():
         msg, att, ext = await queue.get()
         try:
             await handle(msg, att, ext)
-        except Exception as e:  # 單張失敗不應讓 worker 死掉
+        except Exception:  # 單張失敗不應讓 worker 死掉
             logging.exception("處理失敗")
-            await msg.reply(f"❌ 這張照片處理失敗,請稍後再試。({type(e).__name__})")
+            await msg.reply("分析失敗，請再傳一次")
         finally:
             queue.task_done()
 
@@ -92,7 +92,12 @@ async def handle(msg, att, ext):
     except Exception:
         tmp_photo.unlink(missing_ok=True)
         raise
-    final = store.photos / f"{now:%Y%m%d_%H%M%S}_{safe_filename(result['name'])}{ext}"
+    base = f"{now:%Y-%m-%d %H-%M-%S} {safe_filename(result['name'])}"
+    final = store.photos / f"{base}{ext}"
+    n = 2
+    while final.exists():  # 同一秒同名:加 -2、-3
+        final = store.photos / f"{base}-{n}{ext}"
+        n += 1
     tmp_photo.rename(final)
     rec = {**result, "time": now}
     history = await asyncio.to_thread(store.records, user)
